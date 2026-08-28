@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Temperatura e Umidade MQTT</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h1>Monitoramento MQTT</h1>
+    <p>Projeto da Ana, Rafael e Bel</p>
+    <div class="container">
+
+        <div class="card">
+            <h2>Temperatura</h2>
+
+            <div class="valor">
+                <span id="temperatura">--</span> °C
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Umidade</h2>
+
+            <div class="valor">
+                <span id="umidade">--</span> %
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+    <script>
+
+        const broker = "wss://test.mosquitto.org:8081";
+
+        const topicoTemperatura =
+            "senai/aula01/esp32/temperatura/Silva";
+
+        const topicoUmidade =
+            "senai/aula01/esp32/umidade/Silva";
+
+
+        const client = mqtt.connect(broker);
+
+
+        client.on("connect", function () {
+
+            console.log("Conectado ao Broker MQTT!");
+
+
+            client.subscribe(
+                topicoTemperatura,
+                function (erro) {
+
+                    if (!erro) {
+                        console.log("Inscrito no tópico de temperatura!");
+                    }
+
+                }
+            );
+
+
+            client.subscribe(
+                topicoUmidade,
+                function (erro) {
+
+                    if (!erro) {
+                        console.log("Inscrito no tópico de umidade!");
+                    }
+
+                }
+            );
+
+        });
+
+
+        client.on("message", function (topic, message) {
+
+            const valor = message.toString();
+
+            console.log("Tópico:", topic);
+            console.log("Mensagem:", valor);
+
+
+            if (topic === topicoTemperatura) {
+
+                document.getElementById("temperatura").innerText =
+                    valor;
+
+            }
+
+
+            if (topic === topicoUmidade) {
+
+                document.getElementById("umidade").innerText =
+                    valor;
+
+            }
+
+        });
+
+
+        client.on("error", function (erro) {
+
+            console.log("Erro MQTT:", erro);
+
+        });
+
+    </script>
+
+</body>
+
+</html>
