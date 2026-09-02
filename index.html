@@ -1,117 +1,109 @@
 <!DOCTYPE html>
+
 <html lang="pt-br">
 
 <head>
+
     <meta charset="UTF-8">
     <title>Temperatura e Umidade MQTT</title>
-
     <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 </head>
+
 
 <body>
 
     <h1>Monitoramento MQTT</h1>
+
     <p>Projeto da Ana, Rafael e Bel</p>
-    <div class="container">
 
-        <div class="card">
-            <h2>Temperatura</h2>
 
-            <div class="valor">
-                <span id="temperatura">--</span> °C
-            </div>
-        </div>
+    <!-- STATUS DO BROKER -->
+    <div id="statusBroker" class="status-broker conectando">
 
-        <div class="card">
-            <h2>Umidade</h2>
+        <span class="bolinha-status"></span>
 
-            <div class="valor">
-                <span id="umidade">--</span> %
-            </div>
-        </div>
+        <span id="textoStatus">
+            Conectando ao broker...
+        </span>
 
     </div>
 
+
+    <div class="container">
+
+
+        <!-- TEMPERATURA -->
+
+        <div class="card sensor-card">
+
+            <h2>Temperatura</h2>
+
+            <div class="valor">
+
+                <span id="temperatura">--</span> °C
+
+            </div>
+
+        </div>
+
+
+        <!-- UMIDADE -->
+
+        <div class="card sensor-card">
+
+            <h2>Umidade</h2>
+
+            <div class="valor">
+
+                <span id="umidade">--</span> %
+
+            </div>
+
+        </div>
+
+
+        <!-- LED 1 -->
+
+        <div class="card led-card">
+
+            <h2>LED 1</h2>
+
+            <button id="botaoLed1" onclick="controlarLed1()">
+
+                Ligar LED 1
+
+            </button>
+
+        </div>
+
+
+        <!-- LED 2 -->
+
+        <div class="card led-card">
+
+            <h2>LED 2</h2>
+
+            <button id="botaoLed2" onclick="controlarLed2()">
+
+                Ligar LED 2
+
+            </button>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- BIBLIOTECA MQTT -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
-    <script>
 
-        const broker = "wss://test.mosquitto.org:8081";
+    <!-- SEU JAVASCRIPT -->
+    <script src="./script.js"></script>
 
-        const topicoTemperatura =
-            "senai/aula01/esp32/temperatura/Silva";
-
-        const topicoUmidade =
-            "senai/aula01/esp32/umidade/Silva";
-
-
-        const client = mqtt.connect(broker);
-
-
-        client.on("connect", function () {
-
-            console.log("Conectado ao Broker MQTT!");
-
-
-            client.subscribe(
-                topicoTemperatura,
-                function (erro) {
-
-                    if (!erro) {
-                        console.log("Inscrito no tópico de temperatura!");
-                    }
-
-                }
-            );
-
-
-            client.subscribe(
-                topicoUmidade,
-                function (erro) {
-
-                    if (!erro) {
-                        console.log("Inscrito no tópico de umidade!");
-                    }
-
-                }
-            );
-
-        });
-
-
-        client.on("message", function (topic, message) {
-
-            const valor = message.toString();
-
-            console.log("Tópico:", topic);
-            console.log("Mensagem:", valor);
-
-
-            if (topic === topicoTemperatura) {
-
-                document.getElementById("temperatura").innerText =
-                    valor;
-
-            }
-
-
-            if (topic === topicoUmidade) {
-
-                document.getElementById("umidade").innerText =
-                    valor;
-
-            }
-
-        });
-
-
-        client.on("error", function (erro) {
-
-            console.log("Erro MQTT:", erro);
-
-        });
-
-    </script>
 
 </body>
 

@@ -1,37 +1,277 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    min-height: 100%;
+}
+
 body {
     font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
+
+    background: linear-gradient(
+        135deg,
+        #eef2f7,
+        #dfe7f1
+    );
+
+    min-height: 100vh;
+
+    padding: clamp(20px, 4vw, 40px);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
     text-align: center;
-    margin: 0;
-    padding: 0;
+
+    color: #333;
 }
+
+
+/* TÍTULO */
 
 h1 {
-    margin-top: 40px;
-    color: #333;
+    margin: 10px 0 5px;
+
+    font-size: clamp(26px, 4vw, 38px);
 }
+
+body > p {
+    margin: 0 0 18px;
+
+    color: #666;
+
+    font-size: clamp(14px, 2vw, 16px);
+}
+
+
+/* STATUS DO BROKER */
+
+.status-broker {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    background: white;
+
+    padding: 10px 18px;
+
+    margin-bottom: 30px;
+
+    border-radius: 30px;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    box-shadow:
+        0 4px 12px
+        rgba(0, 0, 0, 0.1);
+}
+
+
+.bolinha-status {
+    width: 10px;
+    height: 10px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+}
+
+
+.conectando .bolinha-status {
+    background: orange;
+
+    animation: piscar 1s infinite;
+}
+
+
+.conectado .bolinha-status {
+    background: green;
+}
+
+
+.desconectado .bolinha-status {
+    background: red;
+}
+
+
+@keyframes piscar {
+
+    50% {
+        opacity: 0.2;
+    }
+
+}
+
+
+/* CONTAINER PRINCIPAL */
 
 .container {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    margin-top: 50px;
+    width: 100%;
+
+    max-width: 850px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 22px;
+
+    margin: 0 auto;
 }
+
+
+/* CARDS */
 
 .card {
-    background-color: white;
-    width: 250px;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 100%;
+
+    background: white;
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 6px 18px
+        rgba(0, 0, 0, 0.12);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
+
+
+.card:hover {
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 10px 25px
+        rgba(0, 0, 0, 0.15);
+}
+
+
+/* TEMPERATURA E UMIDADE */
+
+.sensor-card {
+    min-height: 180px;
+
+    padding: 30px;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+}
+
+
+/* CARDS DOS LEDS */
+
+.led-card {
+    width: 70%;
+
+    max-width: 250px;
+
+    min-height: 115px;
+
+    padding: 18px;
+
+    justify-self: center;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+}
+
+
+/* TEXTOS */
 
 .card h2 {
+    margin: 0 0 18px;
+
     color: #555;
+
+    font-size: clamp(18px, 2.5vw, 23px);
 }
 
+
+.led-card h2 {
+    margin-bottom: 12px;
+
+    font-size: 18px;
+}
+
+
 .valor {
-    font-size: 40px;
+    font-size: clamp(32px, 5vw, 44px);
+
     font-weight: bold;
-    color: #333;
+
+    white-space: nowrap;
+}
+
+
+/* BOTÕES */
+
+button {
+    width: 100%;
+
+    border: none;
+
+    border-radius: 9px;
+
+    padding: 11px 15px;
+
+    background: #333;
+
+    color: white;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+button:hover {
+    background: #555;
+}
+
+
+button:active {
+    transform: scale(0.97);
+}
+
+
+/* QUANDO NÃO HOUVER ESPAÇO PARA DUAS COLUNAS */
+
+@media (max-width: 600px) {
+
+    .container {
+        grid-template-columns: 1fr;
+    }
+
+    .sensor-card {
+        min-height: 150px;
+    }
+
+    .led-card {
+        width: 100%;
+        max-width: none;
+    }
+
 }
