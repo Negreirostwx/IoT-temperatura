@@ -1,275 +1,154 @@
-console.log("script.js carregado!");
 
+const BROKER = "wss://broker.hivemq.com:8884/mqtt";
 
-// BROKER MQTT
+const TOPICO_TEMPERATURA = "senai/aula01/esp32/temperatura/Silva";
+const TOPICO_UMIDADE = "senai/aula01/esp32/umidade/Silva";
+const TOPICO_LED = "senai/aula01/esp32/led/Silva";
 
-const broker =
-    "wss://test.mosquitto.org:8081";
+// Elementos HTML
+const statusBroker = document.getElementById("statusBroker");
+const textoStatus = document.getElementById("textoStatus");
+const temperatura = document.getElementById("temperatura");
+const umidade = document.getElementById("umidade");
+const botaoLed1 = document.getElementById("botaoLed1");
+const botaoLed2 = document.getElementById("botaoLed2");
 
-
-// TÓPICOS MQTT
-
-const topicoTemperatura =
-    "senai/aula01/esp32/temperatura/Silva";
-
-const topicoUmidade =
-    "senai/aula01/esp32/umidade/Silva";
-
-const topicoLed =
-    "senai/aula01/esp32/led/Silva";
-
-
-// CONEXÃO MQTT
-
-const client = mqtt.connect(broker);
-
-
-// ELEMENTOS DO STATUS
-
-const statusBroker =
-    document.getElementById("statusBroker");
-
-const textoStatus =
-    document.getElementById("textoStatus");
-
-
-// ESTADO DOS LEDS
-
+// Estado dos LEDs
 let led1Ligado = false;
 let led2Ligado = false;
+let cliente = null;
 
+// Atualiza o status na tela
+function mostrarStatus(classe, mensagem) {
+    statusBroker.className = "status-broker " + classe;
+    textoStatus.textContent = mensagem;
+}
 
-// COMEÇA MOSTRANDO CONECTANDO
+// Verifica se a biblioteca MQTT carregou
+if (typeof mqtt === "undefined") {
 
-textoStatus.innerText =
-    "Conectando ao broker...";
-
-statusBroker.classList.add("conectando");
-
-
-// QUANDO CONECTAR
-
-client.on("connect", function () {
-
-    console.log("Conectado ao Broker MQTT!");
-
-    textoStatus.innerText =
-        "Conectado ao broker";
-
-    statusBroker.classList.remove(
-        "conectando",
-        "desconectado"
+    mostrarStatus(
+        "desconectado",
+        "Erro ao carregar a biblioteca MQTT"
     );
 
-    statusBroker.classList.add(
-        "conectado"
-    );
+    console.error("Biblioteca MQTT não carregada!");
 
+} else {
 
-    // TEMPERATURA
+    // Conecta ao broker
+    cliente = mqtt.connect(BROKER, {
+        clientId: "dashboard_ana_" + Math.random().toString(16).slice(2),
+        reconnectPeriod: 2000,
+        connectTimeout: 10000
+    });
 
-    client.subscribe(
-        topicoTemperatura,
-        function (erro) {
+    // Conectado
+    cliente.on("connect", function () {
 
-            if (!erro) {
+        mostrarStatus("conectado", "Conectado ao broker");
 
-                console.log(
-                    "Inscrito no tópico de temperatura!"
-                );
+        console.log("Conectado ao broker!");
 
+        cliente.subscribe([
+            TOPICO_TEMPERATURA,
+            TOPICO_UMIDADE
+        ], function (erro) {
+
+            if (erro) {
+                console.error("Erro na inscrição:", erro);
             }
 
+        });
+    });
+
+    // Recebe dados do ESP32
+    cliente.on("message", function (topico, mensagem) {
+
+        const valor = mensagem.toString();
+
+        if (topico === TOPICO_TEMPERATURA) {
+            temperatura.textContent = valor;
         }
-    );
 
-
-    // UMIDADE
-
-    client.subscribe(
-        topicoUmidade,
-        function (erro) {
-
-            if (!erro) {
-
-                console.log(
-                    "Inscrito no tópico de umidade!"
-                );
-
-            }
-
+        if (topico === TOPICO_UMIDADE) {
+            umidade.textContent = valor;
         }
-    );
 
-});
+    });
 
+    // Desconectado
+    cliente.on("close", function () {
 
-// RECEBER TEMPERATURA E UMIDADE
+        mostrarStatus(
+            "desconectado",
+            "Desconectado do broker"
+        );
 
-client.on("message", function (topic, message) {
+    });
 
-    const valor =
-        message.toString();
+    // Reconectando
+    cliente.on("reconnect", function () {
 
-    console.log("Tópico:", topic);
-    console.log("Mensagem:", valor);
+        mostrarStatus(
+            "conectando",
+            "Reconectando ao broker..."
+        );
 
+    });
 
-    if (topic === topicoTemperatura) {
+    // Erros
+    cliente.on("error", function (erro) {
+        console.error("Erro MQTT:", erro);
+    });
+}
 
-        document
-            .getElementById("temperatura")
-            .innerText = valor;
-
-    }
-
-
-    if (topic === topicoUmidade) {
-
-        document
-            .getElementById("umidade")
-            .innerText = valor;
-
-    }
-
-});
-
-
-// CONTROLE DO LED 1
-
+// CONTROLE LED 1
 function controlarLed1() {
 
-    const botao =
-        document.getElementById("botaoLed1");
-
-
-    if (led1Ligado === false) {
-
-        client.publish(
-            topicoLed,
-            "LED1_ON"
-        );
-
-        led1Ligado = true;
-
-        botao.innerText =
-            "Desligar LED 1";
-
-        console.log("LED1_ON enviado");
-
+    if (!cliente || !cliente.connected) {
+        alert("Sem conexão com o broker MQTT.");
+        return;
     }
 
-    else {
+    const comando = led1Ligado ? "LED1_OFF" : "LED1_ON";
 
-        client.publish(
-            topicoLed,
-            "LED1_OFF"
-        );
+    cliente.publish(TOPICO_LED, comando, function (erro) {
 
-        led1Ligado = false;
+        if (erro) {
+            console.error("Falha ao enviar comando:", erro);
+            return;
+        }
 
-        botao.innerText =
-            "Ligar LED 1";
+        led1Ligado = !led1Ligado;
 
-        console.log("LED1_OFF enviado");
-
-    }
-
+        botaoLed1.textContent = led1Ligado
+            ? "Desligar LED 1"
+            : "Ligar LED 1";
+    });
 }
 
-
-// CONTROLE DO LED 2
-
+// CONTROLE LED 2
 function controlarLed2() {
 
-    const botao =
-        document.getElementById("botaoLed2");
-
-
-    if (led2Ligado === false) {
-
-        client.publish(
-            topicoLed,
-            "LED2_ON"
-        );
-
-        led2Ligado = true;
-
-        botao.innerText =
-            "Desligar LED 2";
-
-        console.log("LED2_ON enviado");
-
+    if (!cliente || !cliente.connected) {
+        alert("Sem conexão com o broker MQTT.");
+        return;
     }
 
-    else {
+    const comando = led2Ligado ? "LED2_OFF" : "LED2_ON";
 
-        client.publish(
-            topicoLed,
-            "LED2_OFF"
-        );
+    cliente.publish(TOPICO_LED, comando, function (erro) {
 
-        led2Ligado = false;
+        if (erro) {
+            console.error("Falha ao enviar comando:", erro);
+            return;
+        }
 
-        botao.innerText =
-            "Ligar LED 2";
+        led2Ligado = !led2Ligado;
 
-        console.log("LED2_OFF enviado");
-
-    }
-
+        botaoLed2.textContent = led2Ligado
+            ? "Desligar LED 2"
+            : "Ligar LED 2";
+    });
 }
-
-
-// SE PERDER A CONEXÃO
-
-client.on("offline", function () {
-
-    console.log("Broker desconectado");
-
-    textoStatus.innerText =
-        "Desconectado do broker";
-
-    statusBroker.classList.remove(
-        "conectado",
-        "conectando"
-    );
-
-    statusBroker.classList.add(
-        "desconectado"
-    );
-
-});
-
-
-// QUANDO TENTAR RECONECTAR
-
-client.on("reconnect", function () {
-
-    console.log("Tentando reconectar...");
-
-    textoStatus.innerText =
-        "Conectando ao broker...";
-
-    statusBroker.classList.remove(
-        "conectado",
-        "desconectado"
-    );
-
-    statusBroker.classList.add(
-        "conectando"
-    );
-
-});
-
-
-// ERRO MQTT
-
-client.on("error", function (erro) {
-
-    console.log(
-        "Erro MQTT:",
-        erro
-    );
-
-});

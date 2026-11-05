@@ -1,141 +1,166 @@
+<!DOCTYPE html>
 
-/* CONFIGURAÇÃO MQTT */
 
-// Mesmo broker utilizado no ESP32
-const broker = "wss://broker.hivemq.com:8884/mqtt";
+<html lang="pt-br">
 
-// Tópicos MQTT
-const topicoTemperatura = "senai/aula01/esp32/temperatura/Silva";
-const topicoUmidade = "senai/aula01/esp32/umidade/Silva";
-const topicoLed = "senai/aula01/esp32/led/Silva";
 
-// Estados dos LEDs
-let led1Ligado = false;
-let led2Ligado = false;
+<head>
 
-// Elementos da página
-const statusBroker = document.getElementById("statusBroker");
-const textoStatus = document.getElementById("textoStatus");
 
-const temperatura = document.getElementById("temperatura");
-const umidade = document.getElementById("umidade");
+    <meta charset="UTF-8">
+    <title>Temperatura e Umidade MQTT</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-const botaoLed1 = document.getElementById("botaoLed1");
-const botaoLed2 = document.getElementById("botaoLed2");
 
-// Conexão com o broker
-const cliente = mqtt.connect(broker, {
-    clientId: "Dashboard_Ana_" + Math.random().toString(16).slice(2),
-    reconnectPeriod: 2000,
-    connectTimeout: 10000
-});
+</head>
 
-// CONECTADO
-cliente.on("connect", () => {
 
-    console.log("Conectado ao broker MQTT!");
 
-    statusBroker.className = "status-broker conectado";
-    textoStatus.textContent = "Conectado ao broker";
 
-    // Inscrição nos tópicos
-    cliente.subscribe([
-        topicoTemperatura,
-        topicoUmidade
-    ], (erro) => {
-        if (erro) {
-            console.error("Erro ao assinar tópicos:", erro);
-        }
-    });
+<body>
 
-});
 
-// RECEBIMENTO DAS MENSAGENS
-cliente.on("message", (topico, mensagem) => {
+    <h1>Monitoramento MQTT</h1>
 
-    const valor = mensagem.toString();
 
-    console.log("Tópico:", topico, "Mensagem:", valor);
+    <p>Projeto da Ana, Rafael e Bel</p>
 
-    if (topico === topicoTemperatura) {
-        temperatura.textContent = valor;
-    }
 
-    if (topico === topicoUmidade) {
-        umidade.textContent = valor;
-    }
 
-});
 
-// CONEXÃO PERDIDA
-cliente.on("close", () => {
+    <!-- STATUS DO BROKER -->
+    <div id="statusBroker" class="status-broker conectando">
 
-    statusBroker.className = "status-broker desconectado";
-    textoStatus.textContent = "Desconectado do broker";
 
-});
+        <span class="bolinha-status"></span>
 
-// RECONECTANDO
-cliente.on("reconnect", () => {
 
-    statusBroker.className = "status-broker conectando";
-    textoStatus.textContent = "Reconectando ao broker...";
+        <span id="textoStatus">
+            Conectando ao broker...
+        </span>
 
-});
 
-// ERRO DE CONEXÃO
-cliente.on("error", (erro) => {
-    console.error("Erro MQTT:", erro);
-});
+    </div>
 
-// CONTROLE DO LED 1
-function controlarLed1() {
 
-    if (!cliente.connected) {
-        alert("O Dashboard não está conectado ao broker!");
-        return;
-    }
 
-    const comando = led1Ligado ? "LED1_OFF" : "LED1_ON";
 
-    cliente.publish(topicoLed, comando, { qos: 1 }, (erro) => {
+    <div class="container">
 
-        if (erro) {
-            console.error("Erro ao enviar comando:", erro);
-            return;
-        }
 
-        led1Ligado = !led1Ligado;
 
-        botaoLed1.textContent = led1Ligado
-            ? "Desligar LED 1"
-            : "Ligar LED 1";
 
-    });
-}
+        <!-- TEMPERATURA -->
 
-// CONTROLE DO LED 2
-function controlarLed2() {
 
-    if (!cliente.connected) {
-        alert("O Dashboard não está conectado ao broker!");
-        return;
-    }
+        <div class="card sensor-card">
 
-    const comando = led2Ligado ? "LED2_OFF" : "LED2_ON";
 
-    cliente.publish(topicoLed, comando, { qos: 1 }, (erro) => {
+            <h2>Temperatura</h2>
 
-        if (erro) {
-            console.error("Erro ao enviar comando:", erro);
-            return;
-        }
 
-        led2Ligado = !led2Ligado;
+            <div class="valor">
 
-        botaoLed2.textContent = led2Ligado
-            ? "Desligar LED 2"
-            : "Ligar LED 2";
 
-    });
-}
+                <span id="temperatura">--</span> °C
+
+
+            </div>
+
+
+        </div>
+
+
+
+
+        <!-- UMIDADE -->
+
+
+        <div class="card sensor-card">
+
+
+            <h2>Umidade</h2>
+
+
+            <div class="valor">
+
+
+                <span id="umidade">--</span> %
+
+
+            </div>
+
+
+        </div>
+
+
+
+
+        <!-- LED 1 -->
+
+
+        <div class="card led-card">
+
+
+            <h2>LED 1</h2>
+
+
+            <button id="botaoLed1" onclick="controlarLed1()">
+
+
+                Ligar LED 1
+
+
+            </button>
+
+
+        </div>
+
+
+
+
+        <!-- LED 2 -->
+
+
+        <div class="card led-card">
+
+
+            <h2>LED 2</h2>
+
+
+            <button id="botaoLed2" onclick="controlarLed2()">
+
+
+                Ligar LED 2
+
+
+            </button>
+
+
+        </div>
+
+
+
+
+    </div>
+
+
+
+
+    <!-- BIBLIOTECA MQTT -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+
+
+
+    <!-- SEU JAVASCRIPT -->
+    <script src="./script.js"></script>
+
+
+
+
+</body>
+
+
+</html>
